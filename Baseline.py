@@ -1,7 +1,7 @@
+import os
+import torch
 import pandas as pd
 import numpy as np
-import torch
-import os
 from tqdm import tqdm
 from transformers import BertTokenizer, BertModel
 from sklearn.metrics.pairwise import cosine_similarity
@@ -27,18 +27,14 @@ def get_combined_bert_embedding(
     return combined_embedding / len(columns)
 
 
-def recommend_courses(query, university=None, difficulty=None, n=5):
+def recommend_courses(query, n=5):
     query_embedding = get_bert_embedding(query)
     cosine_similarities = cosine_similarity(
         query_embedding.reshape(1, -1), embedding_matrix
     ).flatten()
 
-    if university:
-        cosine_similarities *= (df["University"] == university).values
-    if difficulty:
-        cosine_similarities *= (df["Difficulty Level"] == difficulty).values
-
-    ranked_scores = cosine_similarities * df["Course Rating"].astype(float).values
+    ranked_scores = cosine_similarities * \
+        df["Course Rating"].astype(float).values
     top_indices = ranked_scores.argsort()[-n:][::-1]
 
     return df[["Course Name", "Course URL"]].iloc[top_indices]
